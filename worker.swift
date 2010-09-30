@@ -2,6 +2,11 @@ app (external o) worker(int time) {
   worker time;
 }
 
+app (external o) sleep(int time) {
+  sleep time;
+}
+
+
 /* Main program */
 external rups[];
 
@@ -13,5 +18,5 @@ iterate ix {
 } until (ix == 1300);
 
 foreach ai,i in a {
-  rups[i] = worker(t);
+  rups[i] = sleep(t);
 }
