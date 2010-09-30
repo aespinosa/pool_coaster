@@ -15,7 +15,7 @@ condor_sites = %q[
     <profile namespace="globus" key="jobType">grid</profile>
     <profile namespace="globus" key="gridResource">gt2 <%=url%>/jobmanager-<%=jm%></profile>
 
-    <profile namespace="karajan" key="initialScore">100.0</profile>
+    <profile namespace="karajan" key="initialScore">20.0</profile>
     <profile namespace="karajan" key="jobThrottle"><%=throttle%></profile>
 
     <gridftp  url="gsiftp://<%=url%>"/>
@@ -34,7 +34,7 @@ end
 
 def ress_parse
   dir_suffix = "/engage-scec"
-  class_ads = [
+  class_ads  = [
     "GlueSiteUniqueID", "GlueCEInfoHostName", "GlueCEInfoJobManager",
     "GlueCEInfoGatekeeperPort", "GlueCEInfoApplicationDir", "GlueCEInfoDataDir",
     "GlueCEInfoTotalCPUs"
@@ -53,32 +53,43 @@ def ress_parse
     value.data_dir.sub!(/\/$/, "")
     value.data_dir += dir_suffix
 
-    name = set[class_ads.index("GlueSiteUniqueID")]
-    value.jm = set[class_ads.index("GlueCEInfoJobManager")]
-    value.url = set[class_ads.index("GlueCEInfoHostName")]
-
+    name           = set[class_ads.index("GlueSiteUniqueID")]
+    value.jm       = set[class_ads.index("GlueCEInfoJobManager")]
+    value.url      = set[class_ads.index("GlueCEInfoHostName")]
     value.throttle = (set[class_ads.index("GlueCEInfoTotalCPUs")].to_f - 2.0) / 100.0
 
     yield name, value
   end
 end
 
+# Blacklist of non-working sites
+blacklist = [ "GridUNESP_CENTRAL" ]
+
 # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
 sites = {}
 ress_parse do |name, value|
+  next if blacklist.index(name)
   sites[name] = value if sites[name] == nil
 end
 
+tc_out     = File.open("tc.data", "w")
+condor_out = File.open("condor_osg.xml", "w")
+
+condor_out.puts "<config>"
 sites.each_key do |name|
   condor = ERB.new(condor_sites, 0, "%<>")
-  tc = ERB.new(swift_tc, 0, "%<>")
+  tc     = ERB.new(swift_tc, 0, "%<>")
 
-  jm = sites[name].jm
-  url = sites[name].url
-  app_dir = sites[name].app_dir
+  jm       = sites[name].jm
+  url      = sites[name].url
+  app_dir  = sites[name].app_dir
   data_dir = sites[name].data_dir
   throttle = sites[name].throttle
 
-  #puts tc.result(binding)
-  puts condor.result(binding)
+  tc_out.puts     tc.result(binding)
+  condor_out.puts condor.result(binding)
 end
+condor_out.puts "</config>"
+
+tc_out.close
+condor_out.close
