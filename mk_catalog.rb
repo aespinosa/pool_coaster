@@ -5,7 +5,7 @@ require 'ostruct'
 
 swift_tc = %q[
 <%=name%>  worker     <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
-<%=name%>  sleep     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
+<%=name%>  sleep     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:00:05"
 ]
 
 condor_sites = %q[
@@ -14,6 +14,30 @@ condor_sites = %q[
 
     <profile namespace="globus" key="jobType">grid</profile>
     <profile namespace="globus" key="gridResource">gt2 <%=url%>/jobmanager-<%=jm%></profile>
+
+    <profile namespace="karajan" key="initialScore">20.0</profile>
+    <profile namespace="karajan" key="jobThrottle"><%=throttle%></profile>
+
+    <gridftp  url="gsiftp://<%=url%>"/>
+    <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
+  </pool>
+]
+
+gt2_sites = %q[
+  <pool handle="<%=name%>">
+    <jobmanager universe="vanilla" url="<%=url%>/jobmanager-fork" major="2" />
+
+    <gridftp  url="gsiftp://<%=url%>"/>
+    <workdirectory><%=app_dir%></workdirectory>
+  </pool>
+]
+
+coaster_sites = %q[
+  <pool handle="<%=name%>">
+    <execution provider="coaster" url="communicado.ci.uchicago.edu"
+        jobmanager="local:local" />
+
+    <profile namespace="globus" key="workerManager">passive</profile>
 
     <profile namespace="karajan" key="initialScore">20.0</profile>
     <profile namespace="karajan" key="jobThrottle"><%=throttle%></profile>
@@ -63,7 +87,15 @@ def ress_parse
 end
 
 # Blacklist of non-working sites
-blacklist = [ "GridUNESP_CENTRAL" ]
+#blacklist = [ "GridUNESP_CENTRAL", "RENCI-Blueridge", "RENCI-Engagement" ]
+blacklist = [ "FNAL_FERMIGRID",
+  "Firefly", "GLOW", "GridUNESP_CENTRAL", "LIGO_UWM_NEMO",
+  "MIT_CMS", "MIT_CMS", "NWICG_NotreDame", "NYSGRID_CORNELL_NYS1", "Nebraska",
+  "Nebraska", "Prairiefire", "Purdue-RCAC", "RENCI-Blueridge", "RENCI-Engagement",
+  "SBGrid-Harvard-East", "SMU_PHY", "SPRACE", "SWT2_CPB", "UCHC_CBG", "UCR-HEP",
+  "UCSDT2", "UCSDT2", "UConn-OSG", "UFlorida-HPC", "UFlorida-PG", "UJ-OSG",
+  "UMissHEP", "USCMS-FNAL-WC1", "UTA_SWT2", "WQCG-Harvard-OSG"
+]
 
 # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
 sites = {}
@@ -74,10 +106,12 @@ end
 
 tc_out     = File.open("tc.data", "w")
 condor_out = File.open("condor_osg.xml", "w")
+gt2_out = File.open("gt2_osg.xml", "w")
+coaster_out = File.open("coaster_osg.xml", "w")
 
-condor_out.puts "<config>"
+coaster_out.puts "<config>"
 sites.each_key do |name|
-  condor = ERB.new(condor_sites, 0, "%<>")
+  coaster = ERB.new(coaster_sites, 0, "%<>")
   tc     = ERB.new(swift_tc, 0, "%<>")
 
   jm       = sites[name].jm
@@ -87,9 +121,11 @@ sites.each_key do |name|
   throttle = sites[name].throttle
 
   tc_out.puts     tc.result(binding)
-  condor_out.puts condor.result(binding)
+  coaster_out.puts coaster.result(binding)
 end
-condor_out.puts "</config>"
+coaster_out.puts "</config>"
 
 tc_out.close
 condor_out.close
+gt2_out.close
+coaster_out.close
