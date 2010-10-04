@@ -42,6 +42,8 @@ coaster_sites = %q[
     <profile namespace="karajan" key="initialScore">20.0</profile>
     <profile namespace="karajan" key="jobThrottle"><%=throttle%></profile>
 
+    <profile namespace="globus" key="lowOverallocation">36</profile>
+
     <gridftp  url="gsiftp://<%=url%>"/>
     <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
   </pool>
@@ -87,15 +89,15 @@ def ress_parse
 end
 
 # Blacklist of non-working sites
-#blacklist = [ "GridUNESP_CENTRAL", "RENCI-Blueridge", "RENCI-Engagement" ]
-blacklist = [ "FNAL_FERMIGRID",
-  "Firefly", "GLOW", "GridUNESP_CENTRAL", "LIGO_UWM_NEMO",
-  "MIT_CMS", "MIT_CMS", "NWICG_NotreDame", "NYSGRID_CORNELL_NYS1", "Nebraska",
-  "Nebraska", "Prairiefire", "Purdue-RCAC", "RENCI-Blueridge", "RENCI-Engagement",
-  "SBGrid-Harvard-East", "SMU_PHY", "SPRACE", "SWT2_CPB", "UCHC_CBG", "UCR-HEP",
-  "UCSDT2", "UCSDT2", "UConn-OSG", "UFlorida-HPC", "UFlorida-PG", "UJ-OSG",
-  "UMissHEP", "USCMS-FNAL-WC1", "UTA_SWT2", "WQCG-Harvard-OSG"
-]
+blacklist = [ "GridUNESP_CENTRAL", "RENCI-Blueridge", "RENCI-Engagement" ]
+#blacklist = [ "FNAL_FERMIGRID",
+  #"Firefly", "GLOW", "GridUNESP_CENTRAL", "LIGO_UWM_NEMO",
+  #"MIT_CMS", "MIT_CMS", "NWICG_NotreDame", "NYSGRID_CORNELL_NYS1", "Nebraska",
+  #"Nebraska", "Prairiefire", "Purdue-RCAC", "RENCI-Blueridge", "RENCI-Engagement",
+  #"SBGrid-Harvard-East", "SMU_PHY", "SPRACE", "SWT2_CPB", "UCHC_CBG", "UCR-HEP",
+  #"UCSDT2", "UCSDT2", "UConn-OSG", "UFlorida-HPC", "UFlorida-PG", "UJ-OSG",
+  #"UMissHEP", "USCMS-FNAL-WC1", "UTA_SWT2", "WQCG-Harvard-OSG"
+#]
 
 # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
 sites = {}
@@ -104,14 +106,20 @@ ress_parse do |name, value|
   sites[name] = value if sites[name] == nil
 end
 
-tc_out     = File.open("tc.data", "w")
 condor_out = File.open("condor_osg.xml", "w")
 gt2_out = File.open("gt2_osg.xml", "w")
 coaster_out = File.open("coaster_osg.xml", "w")
 
+tc_out     = File.open("tc.data", "w")
+
+condor_out.puts "<config>"
+gt2_out.puts "<config>"
 coaster_out.puts "<config>"
 sites.each_key do |name|
+  condor = ERB.new(condor_sites, 0, "%<>")
+  gt2 = ERB.new(gt2_sites, 0, "%<>")
   coaster = ERB.new(coaster_sites, 0, "%<>")
+
   tc     = ERB.new(swift_tc, 0, "%<>")
 
   jm       = sites[name].jm
@@ -120,12 +128,18 @@ sites.each_key do |name|
   data_dir = sites[name].data_dir
   throttle = sites[name].throttle
 
-  tc_out.puts     tc.result(binding)
+  condor_out.puts condor.result(binding)
+  gt2_out.puts gt2.result(binding)
   coaster_out.puts coaster.result(binding)
+
+  tc_out.puts     tc.result(binding)
 end
+condor_out.puts "</config>"
+gt2_out.puts "</config>"
 coaster_out.puts "</config>"
 
-tc_out.close
 condor_out.close
 gt2_out.close
 coaster_out.close
+
+tc_out.close

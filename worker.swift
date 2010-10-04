@@ -1,11 +1,6 @@
 app (external o) worker(int time) {
-  worker time;
+  worker "http://128.135.125.17:50007" "PRELIM" "/tmp";
 }
-
-app (external o) sleep(int time) {
-  sleep time;
-}
-
 
 /* Main program */
 external rups[];
@@ -15,8 +10,8 @@ int a[];
 
 iterate ix {
   a[ix] = ix;
-} until (ix == 1300);
+} until (ix == 100);
 
 foreach ai,i in a {
-  rups[i] = sleep(t);
+  rups[i] = worker(t);
 }
