@@ -4,11 +4,26 @@ require 'erb'
 require 'ostruct'
 
 swift_tc = %q[
+<% sites.each_key do |name| %>
+<%   jm       = sites[name].jm
+     url      = sites[name].url
+     app_dir  = sites[name].app_dir
+     data_dir = sites[name].data_dir
+     throttle = sites[name].throttle %>
 <%=name%>  worker     <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
 <%=name%>  sleep     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:00:05"
+<% end %>
 ]
 
 condor_sites = %q[
+<config>
+<% sites.each_key do |name| %>
+<%   jm       = sites[name].jm
+     url      = sites[name].url
+     app_dir  = sites[name].app_dir
+     data_dir = sites[name].data_dir
+     throttle = sites[name].throttle %>
+
   <pool handle="<%=name%>">
     <execution provider="condor" url="none"/>
 
@@ -21,18 +36,38 @@ condor_sites = %q[
     <gridftp  url="gsiftp://<%=url%>"/>
     <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
   </pool>
+<% end %>
+</config>
 ]
 
 gt2_sites = %q[
+<config>
+<% sites.each_key do |name| %>
+<%   jm       = sites[name].jm
+     url      = sites[name].url
+     app_dir  = sites[name].app_dir
+     data_dir = sites[name].data_dir
+     throttle = sites[name].throttle %>
+
   <pool handle="<%=name%>">
     <jobmanager universe="vanilla" url="<%=url%>/jobmanager-fork" major="2" />
 
     <gridftp  url="gsiftp://<%=url%>"/>
     <workdirectory><%=app_dir%></workdirectory>
   </pool>
+<% end %>
+</config>
 ]
 
 coaster_sites = %q[
+<config>
+<% sites.each_key do |name| %>
+<%   jm       = sites[name].jm
+     url      = sites[name].url
+     app_dir  = sites[name].app_dir
+     data_dir = sites[name].data_dir
+     throttle = sites[name].throttle %>
+
   <pool handle="<%=name%>">
     <execution provider="coaster" url="communicado.ci.uchicago.edu"
         jobmanager="local:local" />
@@ -47,6 +82,8 @@ coaster_sites = %q[
     <gridftp  url="gsiftp://<%=url%>"/>
     <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
   </pool>
+<% end %>
+</config>
 ]
 
 def ress_query(class_ads)
@@ -112,31 +149,17 @@ coaster_out = File.open("coaster_osg.xml", "w")
 
 tc_out     = File.open("tc.data", "w")
 
-condor_out.puts "<config>"
-gt2_out.puts "<config>"
-coaster_out.puts "<config>"
-sites.each_key do |name|
-  condor = ERB.new(condor_sites, 0, "%<>")
-  gt2 = ERB.new(gt2_sites, 0, "%<>")
-  coaster = ERB.new(coaster_sites, 0, "%<>")
+condor = ERB.new(condor_sites, 0, "%<>")
+gt2 = ERB.new(gt2_sites, 0, "%<>")
+coaster = ERB.new(coaster_sites, 0, "%<>")
 
-  tc     = ERB.new(swift_tc, 0, "%<>")
+tc     = ERB.new(swift_tc, 0, "%<>")
 
-  jm       = sites[name].jm
-  url      = sites[name].url
-  app_dir  = sites[name].app_dir
-  data_dir = sites[name].data_dir
-  throttle = sites[name].throttle
+condor_out.puts condor.result(binding)
+gt2_out.puts gt2.result(binding)
+coaster_out.puts coaster.result(binding)
 
-  condor_out.puts condor.result(binding)
-  gt2_out.puts gt2.result(binding)
-  coaster_out.puts coaster.result(binding)
-
-  tc_out.puts     tc.result(binding)
-end
-condor_out.puts "</config>"
-gt2_out.puts "</config>"
-coaster_out.puts "</config>"
+tc_out.puts tc.result(binding)
 
 condor_out.close
 gt2_out.close
