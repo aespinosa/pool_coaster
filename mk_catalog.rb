@@ -34,6 +34,28 @@ foreach ai,i in a {
    end %>
 ]
 
+slave_workflow = %q[
+int t = 300;
+
+<% ctr = 0
+   sites.each_key do |name|
+     jm       = sites[name].jm
+     url      = sites[name].url
+     app_dir  = sites[name].app_dir
+     data_dir = sites[name].data_dir
+     throttle = sites[name].throttle %>
+app (external o) sleep<%= ctr %>(int time) {
+  sleep time;
+}
+
+external o<%=ctr%>;
+o<%=ctr%> = sleep<%=ctr%>(t);
+
+<%   ctr += 1
+   end %>
+
+]
+
 swift_tc = %q[
 <% ctr = 0
    sites.each_key do |name|
@@ -43,6 +65,7 @@ swift_tc = %q[
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
 <%=name%>  worker<%= ctr %>    <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
+<%=name%>  sleep<%= ctr %>     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
 <%=name%>  sleep     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
 <%   ctr += 1
    end %>
@@ -182,6 +205,7 @@ coaster_out = File.open("coaster_osg.xml", "w")
 
 tc_out     = File.open("tc.data", "w")
 workflow_out = File.open("worker.swift", "w")
+slave_out = File.open("slave.swift", "w")
 
 condor = ERB.new(condor_sites, 0, "%<>")
 gt2 = ERB.new(gt2_sites, 0, "%<>")
@@ -189,6 +213,7 @@ coaster = ERB.new(coaster_sites, 0, "%<>")
 
 tc     = ERB.new(swift_tc, 0, "%<>")
 workflow = ERB.new(swift_workflow, 0, "%<>")
+slave = ERB.new(slave_workflow, 0, "%<>")
 
 condor_out.puts condor.result(binding)
 gt2_out.puts gt2.result(binding)
@@ -196,6 +221,7 @@ coaster_out.puts coaster.result(binding)
 
 tc_out.puts tc.result(binding)
 workflow_out.puts workflow.result(binding)
+slave_out.puts slave.result(binding)
 
 condor_out.close
 gt2_out.close
@@ -203,3 +229,4 @@ coaster_out.close
 
 tc_out.close
 workflow_out.close
+slave_out.close
