@@ -3,16 +3,49 @@
 require 'erb'
 require 'ostruct'
 
-swift_tc = %q[
-<% sites.each_key do |name| %>
-<%   jm       = sites[name].jm
+# starting ports for the templates
+coaster_service = 1884 
+worker_service  = 42000
+
+swift_workflow = %q[
+int t = 7200;
+int a[];
+
+iterate ix {
+  a[ix] = ix;
+} until (ix == 100);
+<% ctr = 0
+   sites.each_key do |name|
+     jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
-<%=name%>  worker     <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
-<%=name%>  sleep     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:00:05"
-<% end %>
+app (external o) worker<%= ctr %>(int time) {
+  worker<%= ctr %> "http://128.135.125.17:<%= worker_srevice + ctr %>" "PRELIM" "/tmp";
+}
+
+external rups<%= ctr %>[];
+foreach ai,i in a {
+  rups<%= ctr %>[i] = worker<%= ctr %>(t);
+}
+
+<%   ctr += 1
+   end %>
+]
+
+swift_tc = %q[
+<% ctr = 0
+   sites.each_key do |name|
+     jm       = sites[name].jm
+     url      = sites[name].url
+     app_dir  = sites[name].app_dir
+     data_dir = sites[name].data_dir
+     throttle = sites[name].throttle %>
+<%=name%>  worker<%= ctr %>    <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
+<%=name%>  sleep     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
+<%   ctr += 1
+   end %>
 ]
 
 condor_sites = %q[
@@ -40,6 +73,7 @@ condor_sites = %q[
 </config>
 ]
 
+# GT2 for installing the workers
 gt2_sites = %q[
 <config>
 <% sites.each_key do |name| %>
@@ -61,15 +95,16 @@ gt2_sites = %q[
 
 coaster_sites = %q[
 <config>
-<% sites.each_key do |name| %>
-<%   jm       = sites[name].jm
+<% ctr = 0
+   sites.each_key do |name|
+     jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
 
   <pool handle="<%=name%>">
-    <execution provider="coaster" url="communicado.ci.uchicago.edu"
+    <execution provider="coaster-persistent" url="https://communicado.ci.uchicago.edu:<%= coaster_service + ctr %>"
         jobmanager="local:local" />
 
     <profile namespace="globus" key="workerManager">passive</profile>
@@ -82,7 +117,8 @@ coaster_sites = %q[
     <gridftp  url="gsiftp://<%=url%>"/>
     <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
   </pool>
-<% end %>
+<%   ctr += 1
+   end %>
 </config>
 ]
 
@@ -126,20 +162,17 @@ def ress_parse
 end
 
 # Blacklist of non-working sites
-blacklist = [ "GridUNESP_CENTRAL", "RENCI-Blueridge", "RENCI-Engagement" ]
-#blacklist = [ "FNAL_FERMIGRID",
-  #"Firefly", "GLOW", "GridUNESP_CENTRAL", "LIGO_UWM_NEMO",
-  #"MIT_CMS", "MIT_CMS", "NWICG_NotreDame", "NYSGRID_CORNELL_NYS1", "Nebraska",
-  #"Nebraska", "Prairiefire", "Purdue-RCAC", "RENCI-Blueridge", "RENCI-Engagement",
-  #"SBGrid-Harvard-East", "SMU_PHY", "SPRACE", "SWT2_CPB", "UCHC_CBG", "UCR-HEP",
-  #"UCSDT2", "UCSDT2", "UConn-OSG", "UFlorida-HPC", "UFlorida-PG", "UJ-OSG",
-  #"UMissHEP", "USCMS-FNAL-WC1", "UTA_SWT2", "WQCG-Harvard-OSG"
-#]
+blacklist = []
+whitelist = ["BNL-ATLAS", "Nebraska", "Prairiefire", "SBGrid-Harvard-East",
+    "SMU_PHY", "SPRACE", "UCHC_CBG", "UCR-HEP", "UFlorida-PG", "UMissHEP",
+    "USCMS-FNAL-WC1", "WQCG-Harvard-OSG", "FNAL_FERMIGRID", "Firefly", "GLOW",
+    "LIGO_UWM_NEMO", "NYSGRID_CORNELL_NYS1"]
 
 # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
 sites = {}
 ress_parse do |name, value|
-  next if blacklist.index(name)
+  next if blacklist.index(name) and not blacklist.empty?
+  next if not whitelist.index(name) and not whitelist.empty?
   sites[name] = value if sites[name] == nil
 end
 
@@ -148,21 +181,25 @@ gt2_out = File.open("gt2_osg.xml", "w")
 coaster_out = File.open("coaster_osg.xml", "w")
 
 tc_out     = File.open("tc.data", "w")
+workflow_out = File.open("worker.swift", "w")
 
 condor = ERB.new(condor_sites, 0, "%<>")
 gt2 = ERB.new(gt2_sites, 0, "%<>")
 coaster = ERB.new(coaster_sites, 0, "%<>")
 
 tc     = ERB.new(swift_tc, 0, "%<>")
+workflow = ERB.new(swift_workflow, 0, "%<>")
 
 condor_out.puts condor.result(binding)
 gt2_out.puts gt2.result(binding)
 coaster_out.puts coaster.result(binding)
 
 tc_out.puts tc.result(binding)
+workflow_out.puts workflow.result(binding)
 
 condor_out.close
 gt2_out.close
 coaster_out.close
 
 tc_out.close
+workflow_out.close
