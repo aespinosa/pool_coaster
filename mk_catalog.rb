@@ -4,8 +4,8 @@ require 'erb'
 require 'ostruct'
 
 # starting ports for the templates
-coaster_service = 1884 
-worker_service  = 42000
+coaster_service = 62000
+worker_service  = 61000
 
 swift_workflow = %q[
 int t = 7200;
@@ -22,7 +22,7 @@ iterate ix {
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
 app (external o) worker<%= ctr %>(int time) {
-  worker<%= ctr %> "http://128.135.125.17:<%= worker_srevice + ctr %>" "PRELIM" "/tmp";
+  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "PRELIM" "/tmp";
 }
 
 external rups<%= ctr %>[];
