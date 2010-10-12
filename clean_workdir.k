@@ -1,0 +1,79 @@
+import("sys.k")
+import("task.k")
+
+element(removeJM, [url]
+  if(matches(url, ".*/jobmanager-.*") first(split(url, "/")) url)
+)
+
+element(pool, [handle, ..., optional(workdir), channel(properties)]
+  list(
+    host(name = handle
+      each(...)
+      to(properties
+        each(properties)
+      )
+    )
+    try(workdir, "")
+  )
+)
+        
+element(servicelist, [type, provider, url]
+  service(type, provider=provider, jobManager="fork", url=removeJM(url))
+  /*list(type, provider, url, service(type, provider=provider, jobManager="fork", url=removeJM(url)))*/
+)
+        
+element(gridftp, [url, optional(storage), optional(major), optional(minor), optional(patch)]
+  if(
+    url == "local://localhost" 
+    servicelist("file", "local", "")
+    servicelist("file", "gsiftp", url)
+  )
+)
+
+element(jobmanager, [url, major, optional(universe), optional(minor), optional(patch)]
+  provider := if(
+    url == "local://localhost" "local"
+    url == "pbs://localhost" "pbs"
+    major == "4" "GT4"
+    major == "2" "GT2"
+    throw("Unknown job manager version: major = {major}, minor = {minor}, patch = {patch}, url = {url}")
+  )
+  servicelist(type="execution", provider=provider, url=url)
+)
+      
+element(execution, [provider, url]
+  servicelist(type="execution", provider=provider, url=url)
+)
+      
+element(filesystem, [provider, url, optional(storage)]
+  servicelist(type="file", provider=provider, url=url)
+)
+      
+element(profile, [namespace, key, value]
+  if(
+    namespace == "karajan"
+    property("{key}", value)
+    property("{namespace}:{key}", value)
+  )
+)
+        
+element(workdirectory, [dir]
+  workdir = dir
+)
+    
+sitesFile := "osg.xml"
+sites := list(executeFile(sitesFile))
+
+for(site, sites
+  rhost := first(site)
+  workdir := last(site)
+  if(not(file:exists(workdir, host=rhost, provider="gsiftp"))
+    dir:make(workdir, host=rhost, provider="gsiftp")
+  )
+  torm := file:list(workdir, host=rhost, provider="gsiftp")
+  print("{rhost} Removing {torm}")
+  /*list:prepend(torm, "-rf")*/
+  /*if(not(list:isEmpty(torm))*/
+    /*task:execute("/bin/rm", arguments=torm, host=rhost, directory=workdir, provider="GT2")*/
+  /*)*/
+)
