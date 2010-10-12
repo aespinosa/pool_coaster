@@ -61,7 +61,7 @@ element(workdirectory, [dir]
   workdir = dir
 )
     
-sitesFile := "osg.xml"
+sitesFile := "gt2_osg.xml"
 sites := list(executeFile(sitesFile))
 
 for(site, sites
@@ -72,8 +72,9 @@ for(site, sites
   )
   torm := file:list(workdir, host=rhost, provider="gsiftp")
   print("{rhost} Removing {torm}")
-  /*list:prepend(torm, "-rf")*/
-  /*if(not(list:isEmpty(torm))*/
-    /*task:execute("/bin/rm", arguments=torm, host=rhost, directory=workdir, provider="GT2")*/
-  /*)*/
+  if(not(list:isEmpty(torm)) then(
+    foo := list:prepend(torm, "-rf")
+    task:execute("/bin/rm", arguments=torm, host=rhost, directory=workdir, provider="GT2")
+    )
+  )
 )
