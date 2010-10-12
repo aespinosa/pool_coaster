@@ -8,12 +8,6 @@ coaster_service = 62000
 worker_service  = 61000
 
 swift_workflow = %q[
-int t = 7200;
-int a[];
-
-iterate ix {
-  a[ix] = ix;
-} until (ix == 100);
 <% ctr = 0
    sites.each_key do |name|
      jm       = sites[name].jm
@@ -21,13 +15,18 @@ iterate ix {
      app_dir  = sites[name].app_dir
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
-app (external o) worker<%= ctr %>(int time) {
-  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "PRELIM" "/tmp";
+app (external o) worker<%= ctr %>() {
+  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "PRELIM" "/tmp" "7200";
 }
 
 external rups<%= ctr %>[];
-foreach ai,i in a {
-  rups<%= ctr %>[i] = worker<%= ctr %>(t);
+int arr<%= ctr %>[];
+iterate i{
+  arr<%= ctr %>[i] = i;
+} until (i == <%= (throttle * 100 + 2).to_i * 3 %>);
+
+foreach a,i in arr<%= ctr %> {
+  rups<%= ctr %>[i] = worker<%= ctr %>();
 }
 
 <%   ctr += 1
@@ -115,6 +114,7 @@ gt2_sites = %q[
 <% end %>
 </config>
 ]
+    #<workdirectory><%=data_dir%>/swift_scratch</workdirectory>
 
 coaster_sites = %q[
 <config>
@@ -186,10 +186,7 @@ end
 
 # Blacklist of non-working sites
 blacklist = []
-whitelist = ["BNL-ATLAS", "Nebraska", "Prairiefire", "SBGrid-Harvard-East",
-    "SMU_PHY", "SPRACE", "UCHC_CBG", "UCR-HEP", "UFlorida-PG", "UMissHEP",
-    "USCMS-FNAL-WC1", "WQCG-Harvard-OSG", "FNAL_FERMIGRID", "Firefly", "GLOW",
-    "LIGO_UWM_NEMO", "NYSGRID_CORNELL_NYS1"]
+whitelist = ["UCHC_CBG"]
 
 # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
 sites = {}
