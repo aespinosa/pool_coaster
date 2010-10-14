@@ -3,9 +3,9 @@ import("task.k")
 
 element(removeJM, [url]
   if(matches(url, ".*/jobmanager-.*") first(split(url, "/")) url)
-)
+) 
 
-element(pool, [handle, ..., optional(workdir), channel(properties)]
+element(pool, [handle, ..., optional(workdir), optional(appdir), channel(properties)]
   list(
     host(name = handle
       each(...)
@@ -13,6 +13,7 @@ element(pool, [handle, ..., optional(workdir), channel(properties)]
         each(properties)
       )
     )
+    try(appdir, "")
     try(workdir, "")
   )
 )
@@ -60,17 +61,29 @@ element(profile, [namespace, key, value]
 element(workdirectory, [dir]
   workdir = dir
 )
+
+element(appdirectory, [dir]
+  appdir = dir
+)
     
 sitesFile := "gt2_osg.xml"
 sites := list(executeFile(sitesFile))
 
 for(site, sites
-  rhost := first(site)
-  workdir := last(site)
+  rhost   := list:first(site)
+  appdir  := list:get(site, 2)
+  workdir := list:last(site)
+
   if(not(file:exists(workdir, host=rhost, provider="gsiftp"))
     dir:make(workdir, host=rhost, provider="gsiftp")
   )
+  if(not(file:exists(appdir, host=rhost, provider="gsiftp"))
+    dir:make(appdir, host=rhost, provider="gsiftp")
+  )
+
+  task:transfer(srcfile="worker.pl", destfile="worker.pl", destdir=appdir, desthost=rhost, provider="gsiftp")
   torm := file:list(workdir, host=rhost, provider="gsiftp")
+
   print("{rhost} Removing {torm}")
   if(not(list:isEmpty(torm)) then(
     foo := list:prepend(torm, "-rf")

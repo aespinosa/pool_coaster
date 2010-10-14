@@ -16,7 +16,7 @@ swift_workflow = %q[
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
 app (external o) worker<%= ctr %>() {
-  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "PRELIM" "/tmp" "7200";
+  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "PRELIM" "/tmp" "8200";
 }
 
 external rups<%= ctr %>[];
@@ -109,7 +109,8 @@ gt2_sites = %q[
     <jobmanager universe="vanilla" url="<%=url%>/jobmanager-fork" major="2" />
 
     <gridftp  url="gsiftp://<%=url%>"/>
-    <workdirectory><%=app_dir%></workdirectory>
+    <workdirectory><%= data_dir %>/swift_scratch</workdirectory>
+    <appdirectory><%= app_dir %></appdirectory>
   </pool>
 <% end %>
 </config>
