@@ -187,7 +187,8 @@ end
 
 # Blacklist of non-working sites
 blacklist = []
-whitelist = ["UCHC_CBG"]
+#whitelist = ["UCHC_CBG"]
+whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp }
 
 # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
 sites = {}
