@@ -81,10 +81,11 @@ for(site, sites
     dir:make(appdir, host=rhost, provider="gsiftp")
   )
 
+  print("{rhost}: Installing to {appdir}")
   task:transfer(srcfile="worker.pl", destfile="worker.pl", destdir=appdir, desthost=rhost, provider="gsiftp")
-  torm := file:list(workdir, host=rhost, provider="gsiftp")
 
-  print("{rhost} Removing {torm}")
+  torm := file:list(workdir, host=rhost, provider="gsiftp")
+  print("{rhost}: Removing in {workdir} {torm}")
   if(not(list:isEmpty(torm)) then(
     foo := list:prepend(torm, "-rf")
     task:execute("/bin/rm", arguments=torm, host=rhost, directory=workdir, provider="GT2")
