@@ -5,4 +5,4 @@
 #PBS -A CI-CCR000013
 
 /home/aespinosa/swift/cogkit/modules/provider-coaster/resources/worker.pl \
-    http://communicado.ci.uchicago.edu:61999 FOOblock /home/aespinosa/tmp
+    http://communicado.ci.uchicago.edu:60999 FOOblock /home/aespinosa/tmp 8200
