@@ -16,7 +16,7 @@ swift_workflow = %q[
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
 app (external o) worker<%= ctr %>() {
-  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "<%= name %>" "/tmp" "8200";
+  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "<%= name %>" "/tmp" "7200";
 }
 
 external rups<%= ctr %>[];
@@ -35,6 +35,12 @@ foreach a,i in arr<%= ctr %> {
 
 slave_workflow = %q[
 int t = 300;
+
+app (external o) sleep_pads(int time) {
+  sleep_pads time;
+}
+external o_pads;
+o_pads = sleep_pads(t);
 
 <% ctr = 0
    sites.each_key do |name|
@@ -56,6 +62,7 @@ o<%=ctr%> = sleep<%=ctr%>(t);
 ]
 
 swift_tc = %q[
+PADS  sleep_pads     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
 <% ctr = 0
    sites.each_key do |name|
      jm       = sites[name].jm
@@ -119,6 +126,20 @@ gt2_sites = %q[
 
 coaster_sites = %q[
 <config>
+  <pool handle="PADS">
+    <execution provider="coaster-persistent" url="https://communicado.ci.uchicago.edu:<%= coaster_service - 1 %>"
+        jobmanager="local:local" />
+
+    <profile namespace="globus" key="workerManager">passive</profile>
+
+    <profile namespace="karajan" key="initialScore">10000.0</profile>
+    <profile namespace="karajan" key="jobThrottle">3.66</profile>
+
+    <profile namespace="globus" key="lowOverallocation">36</profile>
+
+    <gridftp  url="local://localhost"/>
+    <workdirectory>/gpfs/pads/swift/aespinosa/swift-runs</workdirectory>
+  </pool>
 <% ctr = 0
    sites.each_key do |name|
      jm       = sites[name].jm
