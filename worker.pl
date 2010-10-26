@@ -624,7 +624,8 @@ sub checkTimeouts {
 		wlog TRACE, "time: $time, lastrecv: $LASTRECV, dif: $dif\n";
 		if ($dif >= $IDLETIMEOUT && $JOBS_RUNNING == 0) {
 			wlog INFO, "Idle time exceeded (time=$time, LASTRECV=$LASTRECV, dif=$dif)\n";
-			die "Idle time exceeded";
+			wlog INFO, "Ran a total of $JOB_COUNT jobs\n";
+			exit 0
 		}
 	}
 }
