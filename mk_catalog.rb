@@ -23,7 +23,7 @@ external rups<%= ctr %>[];
 int arr<%= ctr %>[];
 iterate i{
   arr<%= ctr %>[i] = i;
-} until (i == <%= (throttle * 100 + 2).to_i * 3 %>);
+} until (i == <%= (throttle * 100 + 2).to_i * 1.3 %>);
 
 foreach a,i in arr<%= ctr %> {
   rups<%= ctr %>[i] = worker<%= ctr %>();
