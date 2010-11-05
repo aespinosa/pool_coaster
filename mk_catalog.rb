@@ -94,6 +94,7 @@ condor_sites = %q[
 
     <profile namespace="karajan" key="initialScore">20.0</profile>
     <profile namespace="karajan" key="jobThrottle"><%=throttle%></profile>
+    <profile namespace="karajan" key="maxSubmitRate">0.5</profile>
 
     <gridftp  url="gsiftp://<%=url%>"/>
     <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
@@ -177,7 +178,7 @@ def ress_query(class_ads)
 end
 
 def ress_parse
-  dir_suffix = "/engage-scec"
+  dir_suffix = "/engage/scec"
   class_ads  = [
     "GlueSiteUniqueID", "GlueCEInfoHostName", "GlueCEInfoJobManager",
     "GlueCEInfoGatekeeperPort", "GlueCEInfoApplicationDir", "GlueCEInfoDataDir",
