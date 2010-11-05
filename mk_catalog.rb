@@ -123,7 +123,6 @@ gt2_sites = %q[
 <% end %>
 </config>
 ]
-    #<workdirectory><%=data_dir%>/swift_scratch</workdirectory>
 
 coaster_sites = %q[
 <config>
