@@ -189,18 +189,23 @@ def ress_parse
 
     value = OpenStruct.new
 
-    value.app_dir = set[class_ads.index("GlueCEInfoApplicationDir")]
-    value.app_dir.sub!(/\/$/, "")
-    value.app_dir += dir_suffix
-
-    value.data_dir = set[class_ads.index("GlueCEInfoDataDir")]
-    value.data_dir.sub!(/\/$/, "")
-    value.data_dir += dir_suffix
-
     name           = set[class_ads.index("GlueSiteUniqueID")]
     value.jm       = set[class_ads.index("GlueCEInfoJobManager")]
     value.url      = set[class_ads.index("GlueCEInfoHostName")]
     value.throttle = (set[class_ads.index("GlueCEInfoTotalCPUs")].to_f - 2.0) / 100.0
+
+    value.app_dir = set[class_ads.index("GlueCEInfoApplicationDir")]
+    value.app_dir.sub!(/\/$/, "")
+    value.data_dir = set[class_ads.index("GlueCEInfoDataDir")]
+    value.data_dir.sub!(/\/$/, "")
+
+    if name == "BNL-ATLAS"
+      value.app_dir += "/engage-scec"
+      value.data_dir += "/engage-scec"
+    else
+      value.app_dir += dir_suffix
+      value.data_dir += dir_suffix
+    end
 
     yield name, value
   end
@@ -209,7 +214,7 @@ end
 # Blacklist of non-working sites
 blacklist = []
 #whitelist = ["UCHC_CBG"]
-whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp }
+whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp! }
 
 # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
 sites = {}
