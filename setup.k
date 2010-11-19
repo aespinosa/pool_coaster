@@ -83,7 +83,9 @@ for(site, sites
 
   print("{rhost}: Installing to {appdir}")
   task:transfer(srcfile="worker.pl", destfile="worker.pl", destdir=appdir, desthost=rhost, provider="gsiftp")
+  file:chmod("{appdir}/worker.pl", "755", host=rhost, provider="gsiftp")
 
+/*
   torm := file:list(workdir, host=rhost, provider="gsiftp")
   print("{rhost}: Removing in {workdir} {torm}")
   if(not(list:isEmpty(torm)) then(
@@ -91,4 +93,5 @@ for(site, sites
     task:execute("/bin/rm", arguments=torm, host=rhost, directory=workdir, provider="GT2")
     )
   )
+*/
 )
