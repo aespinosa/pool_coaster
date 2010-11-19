@@ -23,7 +23,7 @@ external rups<%= ctr %>[];
 int arr<%= ctr %>[];
 iterate i{
   arr<%= ctr %>[i] = i;
-} until (i == <%= ((throttle * 100 + 2) * 1.2).to_i %>);
+} until (i == <%= ((throttle * 100 + 2) * 2.5).to_i %>);
 
 foreach a,i in arr<%= ctr %> {
   rups<%= ctr %>[i] = worker<%= ctr %>();
@@ -70,9 +70,9 @@ PADS  sleep_pads     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltim
      app_dir  = sites[name].app_dir
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
-<%=name%>  worker<%= ctr %>    <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
-<%=name%>  sleep<%= ctr %>     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
-<%=name%>  sleep     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
+<%=name%>  worker<%= ctr %> <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
+<%=name%>  sleep<%= ctr %>  /bin/sleep                  INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
+<%=name%>  sleep            /bin/sleep                  INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
 <%   ctr += 1
    end %>
 ]
@@ -94,7 +94,9 @@ condor_sites = %q[
 
     <profile namespace="karajan" key="initialScore">20.0</profile>
     <profile namespace="karajan" key="jobThrottle"><%=throttle%></profile>
-    <profile namespace="karajan" key="maxSubmitRate">0.5</profile>
+    <% if name =~ /FNAL_FERMIGRID/ %>
+      <profile namespace="globus" key="condor_requirements">GlueHostOperatingSystemRelease =?= "5.3" && GlueSubClusterName =!= GlueClusterName</profile>
+    <% end %>
 
     <gridftp  url="gsiftp://<%=url%>"/>
     <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
@@ -189,23 +191,24 @@ def ress_parse
 
     value = OpenStruct.new
 
-    name           = set[class_ads.index("GlueSiteUniqueID")]
     value.jm       = set[class_ads.index("GlueCEInfoJobManager")]
     value.url      = set[class_ads.index("GlueCEInfoHostName")]
     value.throttle = (set[class_ads.index("GlueCEInfoTotalCPUs")].to_f - 2.0) / 100.0
+    name           = set[class_ads.index("GlueSiteUniqueID")] + "_" +  value.url
 
     value.app_dir = set[class_ads.index("GlueCEInfoApplicationDir")]
     value.app_dir.sub!(/\/$/, "")
     value.data_dir = set[class_ads.index("GlueCEInfoDataDir")]
     value.data_dir.sub!(/\/$/, "")
 
-    if name == "BNL-ATLAS"
-      value.app_dir += "/engage-scec"
-      value.data_dir += "/engage-scec"
-    else
-      value.app_dir += dir_suffix
-      value.data_dir += dir_suffix
-    end
+    value.app_dir += dir_suffix
+    value.data_dir += dir_suffix
+
+    # Hard-wired exceptions
+    value.app_dir  = "/osg/app"                     if name =~ /GridUNESP_CENTRAL/
+    value.data_dir = "/osg/data"                    if name =~ /GridUNESP_CENTRAL/
+    value.app_dir.sub!(dir_suffix, "/engage-scec")  if name =~ /BNL-ATLAS/
+    value.data_dir.sub!(dir_suffix, "/engage-scec") if name =~ /BNL-ATLAS/
 
     yield name, value
   end
