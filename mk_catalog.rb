@@ -16,7 +16,7 @@ swift_workflow = %q[
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
 app (external o) worker<%= ctr %>() {
-  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "<%= name %>" "/tmp" "7200";
+  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "<%= name %>" "/tmp" "14400";
 }
 
 external rups<%= ctr %>[];
@@ -70,7 +70,7 @@ PADS  sleep_pads     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltim
      app_dir  = sites[name].app_dir
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
-<%=name%>  worker<%= ctr %> <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="02:00:00"
+<%=name%>  worker<%= ctr %> <%=app_dir%>/worker.pl      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="04:00:00"
 <%=name%>  sleep<%= ctr %>  /bin/sleep                  INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
 <%=name%>  sleep            /bin/sleep                  INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
 <%   ctr += 1
