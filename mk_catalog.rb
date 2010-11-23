@@ -214,47 +214,49 @@ def ress_parse
   end
 end
 
-# Blacklist of non-working sites
-blacklist = []
-#whitelist = ["UCHC_CBG"]
-whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp! }
+if __FILE__ == $0 then
+  # Blacklist of non-working sites
+  blacklist = []
+  #whitelist = ["UCHC_CBG"]
+  whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp! }
 
-# Removes duplicate site entries (i.e. multilpe GRAM endpoints)
-sites = {}
-ress_parse do |name, value|
-  next if blacklist.index(name) and not blacklist.empty?
-  next if not whitelist.index(name) and not whitelist.empty?
-  sites[name] = value if sites[name] == nil
+  # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
+  sites = {}
+  ress_parse do |name, value|
+    next if blacklist.index(name) and not blacklist.empty?
+    next if not whitelist.index(name) and not whitelist.empty?
+    sites[name] = value if sites[name] == nil
+  end
+
+  condor_out = File.open("condor_osg.xml", "w")
+  gt2_out = File.open("gt2_osg.xml", "w")
+  coaster_out = File.open("coaster_osg.xml", "w")
+
+  tc_out     = File.open("tc.data", "w")
+  workflow_out = File.open("worker.swift", "w")
+  slave_out = File.open("slave.swift", "w")
+
+  condor = ERB.new(condor_sites, 0, "%<>")
+  gt2 = ERB.new(gt2_sites, 0, "%<>")
+  coaster = ERB.new(coaster_sites, 0, "%<>")
+
+  tc     = ERB.new(swift_tc, 0, "%<>")
+  workflow = ERB.new(swift_workflow, 0, "%<>")
+  slave = ERB.new(slave_workflow, 0, "%<>")
+
+  condor_out.puts condor.result(binding)
+  gt2_out.puts gt2.result(binding)
+  coaster_out.puts coaster.result(binding)
+
+  tc_out.puts tc.result(binding)
+  workflow_out.puts workflow.result(binding)
+  slave_out.puts slave.result(binding)
+
+  condor_out.close
+  gt2_out.close
+  coaster_out.close
+
+  tc_out.close
+  workflow_out.close
+  slave_out.close
 end
-
-condor_out = File.open("condor_osg.xml", "w")
-gt2_out = File.open("gt2_osg.xml", "w")
-coaster_out = File.open("coaster_osg.xml", "w")
-
-tc_out     = File.open("tc.data", "w")
-workflow_out = File.open("worker.swift", "w")
-slave_out = File.open("slave.swift", "w")
-
-condor = ERB.new(condor_sites, 0, "%<>")
-gt2 = ERB.new(gt2_sites, 0, "%<>")
-coaster = ERB.new(coaster_sites, 0, "%<>")
-
-tc     = ERB.new(swift_tc, 0, "%<>")
-workflow = ERB.new(swift_workflow, 0, "%<>")
-slave = ERB.new(slave_workflow, 0, "%<>")
-
-condor_out.puts condor.result(binding)
-gt2_out.puts gt2.result(binding)
-coaster_out.puts coaster.result(binding)
-
-tc_out.puts tc.result(binding)
-workflow_out.puts workflow.result(binding)
-slave_out.puts slave.result(binding)
-
-condor_out.close
-gt2_out.close
-coaster_out.close
-
-tc_out.close
-workflow_out.close
-slave_out.close
