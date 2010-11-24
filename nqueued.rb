@@ -47,11 +47,12 @@ end
 
 if __FILE__ == $0
   start_port = 61000
-  ctr = 0
-  threads = []
-  whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp! }
+  ctr        = 0
+  threads    = []
+  ARGV[1]    = "scec" if !ARGV[1]
+  whitelist  = IO.readlines(ARGV[0]).map { |line| line.chomp! }
 
-  ress_parse do |name, value|
+  ress_parse(ARGV[1]) do |name, value|
     next if not whitelist.index(name) and not whitelist.empty?
     site               = Job.new
     site.name          = name

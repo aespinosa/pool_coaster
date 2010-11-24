@@ -178,8 +178,8 @@ def ress_query(class_ads)
   `#{cmd}`
 end
 
-def ress_parse
-  dir_suffix = "/engage/scec"
+def ress_parse(app_name)
+  dir_suffix = "/engage/#{app_name}"
   class_ads  = [
     "GlueSiteUniqueID", "GlueCEInfoHostName", "GlueCEInfoJobManager",
     "GlueCEInfoGatekeeperPort", "GlueCEInfoApplicationDir", "GlueCEInfoDataDir",
@@ -207,22 +207,22 @@ def ress_parse
     # Hard-wired exceptions
     value.app_dir  = "/osg/app"                     if name =~ /GridUNESP_CENTRAL/
     value.data_dir = "/osg/data"                    if name =~ /GridUNESP_CENTRAL/
-    value.app_dir.sub!(dir_suffix, "/engage-scec")  if name =~ /BNL-ATLAS/
-    value.data_dir.sub!(dir_suffix, "/engage-scec") if name =~ /BNL-ATLAS/
+    value.app_dir.sub!(dir_suffix, "/engage-#{app_name}")  if name =~ /BNL-ATLAS/
+    value.data_dir.sub!(dir_suffix, "/engage-#{app_name}") if name =~ /BNL-ATLAS/
 
     yield name, value
   end
 end
 
 if __FILE__ == $0 then
+  ARGV[1] = "scec" if !ARGV[1]
   # Blacklist of non-working sites
   blacklist = []
-  #whitelist = ["UCHC_CBG"]
   whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp! }
 
   # Removes duplicate site entries (i.e. multilpe GRAM endpoints)
   sites = {}
-  ress_parse do |name, value|
+  ress_parse(ARGV[1]) do |name, value|
     next if blacklist.index(name) and not blacklist.empty?
     next if not whitelist.index(name) and not whitelist.empty?
     sites[name] = value if sites[name] == nil
