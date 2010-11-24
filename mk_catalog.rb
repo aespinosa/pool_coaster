@@ -215,9 +215,11 @@ def ress_parse(app_name)
 end
 
 if __FILE__ == $0 then
-  ARGV[1] = "scec" if !ARGV[1]
+  raise "No whitelist file" if !ARGV[0]
+
   # Blacklist of non-working sites
   blacklist = []
+  ARGV[1]   = "scec" if !ARGV[1]
   whitelist = IO.readlines(ARGV[0]).map { |line| line.chomp! }
 
   # Removes duplicate site entries (i.e. multilpe GRAM endpoints)

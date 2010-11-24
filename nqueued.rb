@@ -46,6 +46,8 @@ class Job
 end
 
 if __FILE__ == $0
+  raise "No whitelist file" if !ARGV[0]
+
   start_port = 61000
   ctr        = 0
   threads    = []
