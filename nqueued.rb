@@ -28,7 +28,7 @@ class Job
   end
 
   def submit_job(count)
-    puts "Submitting #{count} jobs"
+    puts "Submitting #{@name} #{count} jobs"
     output = ""
     submitfile = gen_submit(count)
     IO.popen("condor_submit", "w+") do |submit|
@@ -77,11 +77,13 @@ if __FILE__ == $0
           total += idle - queued
         end
         sleep 60
-        puts total
+        puts "#{name}: #{total}"
       end
+      puts "Finished #{name}"
     end
 
     ctr += 1
   end
 end
 threads.each { |job| job.join }
+puts "Finished pool"
