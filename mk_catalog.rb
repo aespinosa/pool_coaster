@@ -194,7 +194,8 @@ def ress_parse(app_name)
     value.jm       = set[class_ads.index("GlueCEInfoJobManager")]
     value.url      = set[class_ads.index("GlueCEInfoHostName")]
     value.throttle = (set[class_ads.index("GlueCEInfoTotalCPUs")].to_f - 2.0) / 100.0
-    name           = set[class_ads.index("GlueSiteUniqueID")] + "_" +  value.url
+    name           = set[class_ads.index("GlueSiteUniqueID")] + "__" +  value.url
+    value.name     = set[class_ads.index("GlueSiteUniqueID")]
 
     value.app_dir = set[class_ads.index("GlueCEInfoApplicationDir")]
     value.app_dir.sub!(/\/$/, "")
