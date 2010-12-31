@@ -6,4 +6,4 @@
 #PBS -m n
 
 /home/aespinosa/swift/cogkit/modules/provider-coaster/resources/worker.pl \
-    http://communicado.ci.uchicago.edu:60999 PADS /home/aespinosa/tmp 14402
+    http://communicado.ci.uchicago.edu:60999 PADS /home/aespinosa/tmp
