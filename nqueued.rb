@@ -13,6 +13,8 @@ class Job
       stream_error = False
       transfer_executable = False
       periodic_remove = JobStatus == 5
+      periodic_hold = (JobStatus == 2) \\
+                      && ((CurrentTime - EnteredCurrentStatus) > 14400)
       notification = Never
 
       globus_rsl = (maxwalltime=240)
