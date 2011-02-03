@@ -149,7 +149,8 @@ coaster_sites = %q[
      url      = sites[name].url
      app_dir  = sites[name].app_dir
      data_dir = sites[name].data_dir
-     throttle = sites[name].throttle %>
+     throttle = sites[name].throttle
+     total    = sites[name].total %>
 
   <pool handle="<%=name%>">
     <execution provider="coaster-persistent" url="https://communicado.ci.uchicago.edu:<%= coaster_service + ctr %>"
@@ -158,6 +159,7 @@ coaster_sites = %q[
     <profile namespace="globus" key="workerManager">passive</profile>
 
     <profile namespace="karajan" key="initialScore">20.0</profile>
+    <!-- CPUs: <%= total %> -->
     <profile namespace="karajan" key="jobThrottle"><%=throttle%></profile>
 
     <profile namespace="globus" key="lowOverallocation">36</profile>
@@ -196,7 +198,9 @@ def ress_parse(app_name)
 
     value.jm       = set[class_ads.index("GlueCEInfoJobManager")]
     value.url      = set[class_ads.index("GlueCEInfoHostName")]
-    value.throttle = (set[class_ads.index("GlueCEInfoTotalCPUs")].to_f - 2.0) / 100.0
+    value.total    = set[class_ads.index("GlueCEInfoTotalCPUs")].to_i
+    next if value.total == 999999
+    value.throttle = (value.total.to_f - 2.0) / 100.0
     name           = set[class_ads.index("GlueSiteUniqueID")] + "__" +  value.url
     value.name     = set[class_ads.index("GlueSiteUniqueID")]
 
