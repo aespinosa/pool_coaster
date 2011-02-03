@@ -189,6 +189,7 @@ def ress_parse(app_name)
   ]
   ress_query(class_ads).each_line do |line|
     line.chomp!
+    next if line == ""
     set = line.split("|")
 
     value = OpenStruct.new
