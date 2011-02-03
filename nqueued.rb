@@ -19,8 +19,8 @@ class Job
 
       globus_rsl = (maxwalltime=240)
       grid_resource = <%= @grid_resource %>
-      executable = <%= @app_dir %>/worker.pl
-      arguments = http://128.135.125.17:<%= port %> <%= name %> /tmp 14400
+      executable = /bin/sleep
+      arguments = 4h
       log = worker.log
 
       <% count.times { %>queue
