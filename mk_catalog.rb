@@ -16,7 +16,8 @@ swift_workflow = %q[
      data_dir = sites[name].data_dir
      throttle = sites[name].throttle %>
 app (external o) worker<%= ctr %>() {
-  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "<%= name %>" "/tmp" "14400";
+/*  worker<%= ctr %> "http://128.135.125.17:<%= worker_service + ctr %>" "<%= name %>" "/tmp" "14400"; */
+  sleep<%= ctr %> "14400";
 }
 
 external rups<%= ctr %>[];
@@ -34,7 +35,7 @@ foreach a,i in arr<%= ctr %> {
 ]
 
 slave_workflow = %q[
-int t = 300;
+int t = 0;
 
 app (external o) sleep_pads(int time) {
   sleep_pads time;
@@ -162,7 +163,8 @@ coaster_sites = %q[
     <profile namespace="globus" key="lowOverallocation">36</profile>
 
     <gridftp  url="gsiftp://<%=url%>"/>
-    <workdirectory><%=data_dir%>/swift_scratch</workdirectory>
+    <!--<workdirectory><%=data_dir%>/swift_scratch</workdirectory>-->
+    <workdirectory>/var/tmp/swift_scratch</workdirectory>
   </pool>
 <%   ctr += 1
    end %>
