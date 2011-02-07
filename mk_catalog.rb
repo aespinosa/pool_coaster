@@ -4,8 +4,8 @@ require 'erb'
 require 'ostruct'
 
 # starting ports for the templates
-coaster_service = 62000
-worker_service  = 61000
+coaster_service = 65000
+worker_service  = 64000
 
 swift_workflow = %q[
 <% ctr = 0
