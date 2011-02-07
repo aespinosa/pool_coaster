@@ -19,8 +19,8 @@ class Job
 
       globus_rsl = (maxwalltime=240)
       grid_resource = <%= @grid_resource %>
-      executable = <%= @app_dir %>/worker.pl
-      arguments = http://128.135.125.17:<%= port %> <%= name %> /tmp 14400
+      executable = /bin/sleep
+      arguments = 4h
       log = worker.log
 
       <% count.times { %>queue
@@ -53,6 +53,7 @@ if __FILE__ == $0
 
   start_port = 61000
   ctr        = 0
+  alljobs    = 0
   threads    = []
   ARGV[1]    = "scec" if !ARGV[1]
   whitelist  = IO.readlines(ARGV[0]).map { |line| line.chomp! }
@@ -65,8 +66,8 @@ if __FILE__ == $0
     site.app_dir       = value.app_dir
     site.data_dir      = value.data_dir
     site.port          = start_port + ctr
-    throttle           = ((value.throttle * 100 + 2) * 2.5).to_i
-    idle               = (value.throttle * 10 + 0.2).to_i
+    throttle           = (value.total * 2.5).to_i
+    idle               = (value.total * 0.10).to_i
 
     site.gen_submit
 
@@ -76,17 +77,21 @@ if __FILE__ == $0
       while total < throttle do
         queued = site.queue
         if queued < idle then
-          site.submit_job(idle - queued)
-          total += idle - queued
+          tosend = [idle - queued, throttle - total].min
+          puts "Sending to #{name} #{tosend} jobs"
+          site.submit_job(tosend)
+          total += tosend
         end
         sleep 60
-        puts "#{name}: #{total}"
+        puts "Sent to #{name}: #{total}"
+        puts "Remaining in #{name}: #{throttle - total} out of #{throttle}"
       end
       puts "Finished #{name}"
     end
 
     ctr += 1
+    alljobs += throttle
   end
+  threads.each { |job| job.join }
+  puts "Finished pool of #{alljobs} jobs."
 end
-threads.each { |job| job.join }
-puts "Finished pool"
