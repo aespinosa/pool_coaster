@@ -213,8 +213,8 @@ def ress_parse(app_name)
     value.data_dir += dir_suffix
 
     # Hard-wired exceptions
-    value.app_dir  = "/osg/app"                     if name =~ /GridUNESP_CENTRAL/
-    value.data_dir = "/osg/data"                    if name =~ /GridUNESP_CENTRAL/
+    value.app_dir  = "/osg/app/engage/#{app_name}"                     if name =~ /GridUNESP_CENTRAL/
+    value.data_dir = "/osg/data/engage/#{app_name}"                    if name =~ /GridUNESP_CENTRAL/
     value.app_dir.sub!(dir_suffix, "/engage-#{app_name}")  if name =~ /BNL-ATLAS/
     value.data_dir.sub!(dir_suffix, "/engage-#{app_name}") if name =~ /BNL-ATLAS/
 
