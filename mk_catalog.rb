@@ -109,7 +109,7 @@ condor_sites = %q[
 # GT2 for installing the workers
 gt2_sites = %q[
 <config>
-<% sites.keys.sort.key do |name| %>
+<% sites.keys.sort.each do |name| %>
 <%   jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
