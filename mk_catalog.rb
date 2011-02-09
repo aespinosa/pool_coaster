@@ -9,7 +9,7 @@ worker_service  = 64000
 
 swift_workflow = %q[
 <% ctr = 0
-   sites.each_key do |name|
+   sites.keys.sort.each do |name|
      jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
@@ -44,7 +44,7 @@ external o_pads;
 o_pads = sleep_pads(t);
 
 <% ctr = 0
-   sites.each_key do |name|
+   sites.keys.sort.each do |name|
      jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
@@ -65,7 +65,7 @@ o<%=ctr%> = sleep<%=ctr%>(t);
 swift_tc = %q[
 PADS  sleep_pads     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltime="00:05:00"
 <% ctr = 0
-   sites.each_key do |name|
+   sites.keys.sort.each do |name|
      jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
@@ -80,7 +80,7 @@ PADS  sleep_pads     /bin/sleep      INSTALLED INTEL32::LINUX GLOBUS::maxwalltim
 
 condor_sites = %q[
 <config>
-<% sites.each_key do |name| %>
+<% sites.keys.sort.each do |name| %>
 <%   jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
@@ -109,7 +109,7 @@ condor_sites = %q[
 # GT2 for installing the workers
 gt2_sites = %q[
 <config>
-<% sites.each_key do |name| %>
+<% sites.keys.sort.key do |name| %>
 <%   jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir
@@ -144,7 +144,7 @@ coaster_sites = %q[
     <workdirectory>/gpfs/pads/swift/aespinosa/swift-runs</workdirectory>
   </pool>
 <% ctr = 0
-   sites.each_key do |name|
+   sites.keys.sort.each do |name|
      jm       = sites[name].jm
      url      = sites[name].url
      app_dir  = sites[name].app_dir

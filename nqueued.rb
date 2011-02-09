@@ -57,9 +57,15 @@ if __FILE__ == $0
   threads    = []
   ARGV[1]    = "scec" if !ARGV[1]
   whitelist  = IO.readlines(ARGV[0]).map { |line| line.chomp! }
+  sites = {}
 
   ress_parse(ARGV[1]) do |name, value|
     next if not whitelist.index(name) and not whitelist.empty?
+    sites[name] = value
+  end
+
+  sites.keys.sort.each do |name|
+    value = sites[name]
     site               = Job.new
     site.name          = name
     site.grid_resource = "gt2 #{value.url}/jobmanager-#{value.jm}"
